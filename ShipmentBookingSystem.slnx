@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="src/ShipmentBookingSystem.Presentation/ShipmentBookingSystem.Presentation.csproj" />
+  <Project Path="src/ShipmentBookingSystem.Api/ShipmentBookingSystem.Api.csproj" />
+  <Project Path="src/ShipmentBookingSystem.Application/ShipmentBookingSystem.Application.csproj" />
+  <Project Path="src/ShipmentBookingSystem.Domain/ShipmentBookingSystem.Domain.csproj" />
+  <Project Path="src/ShipmentBookingSystem.Infrastructure/ShipmentBookingSystem.Infrastructure.csproj" />
+</Solution>

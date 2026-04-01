@@ -1,0 +1,20 @@
+# IDE files
+.vs
+.idea
+ShipmentBookingSystem.sln.DotSettings.user
+
+# Build files
+src/ShipmentBookingSystem.Api/bin
+src/ShipmentBookingSystem.Api/obj
+src/ShipmentBookingSystem.Application/bin
+src/ShipmentBookingSystem.Application/obj
+src/ShipmentBookingSystem.Domain/bin
+src/ShipmentBookingSystem.Domain/obj
+src/ShipmentBookingSystem.Infrastructure/bin
+src/ShipmentBookingSystem.Infrastructure/obj
+src/ShipmentBookingSystem.Presentation/bin
+src/ShipmentBookingSystem.Presentation/obj
+src/ShipmentBookingSystem.Shared/bin
+src/ShipmentBookingSystem.Shared/obj
+src/ShipmentBookingSystem.Tests/bin
+src/ShipmentBookingSystem.Tests/obj
