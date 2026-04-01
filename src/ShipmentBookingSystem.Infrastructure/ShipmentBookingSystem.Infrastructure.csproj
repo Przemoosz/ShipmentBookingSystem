@@ -11,4 +11,8 @@
     <ProjectReference Include="..\ShipmentBookingSystem.Application\ShipmentBookingSystem.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Dapper" />
+  </ItemGroup>
+
 </Project>
