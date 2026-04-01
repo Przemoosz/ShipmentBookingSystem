@@ -1,4 +1,9 @@
 
+using ShipmentBookingSystem.Application;
+using ShipmentBookingSystem.Domain;
+using ShipmentBookingSystem.Infrastructure;
+using ShipmentBookingSystem.Presentation;
+
 namespace ShipmentBookingSystem.Api
 {
 	public sealed class Program
@@ -7,8 +12,13 @@ namespace ShipmentBookingSystem.Api
 		{
 			var builder = WebApplication.CreateBuilder(args);
 
+			builder.Services.InstallApplication();
+			builder.Services.InstallDomain();
+			builder.Services.InstallInfrastructure();
+			builder.Services.InstallPresentation();
+			
 			builder.Services.AddControllers();
-
+			
 			builder.Services.AddOpenApi();
 
 			var app = builder.Build();

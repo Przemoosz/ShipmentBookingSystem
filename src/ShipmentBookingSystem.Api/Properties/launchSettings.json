@@ -25,6 +25,9 @@
       },
       "publishAllPorts": true,
       "useSSL": true
+    },
+    "Profile 1": {
+      "commandName": "Docker"
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json"
