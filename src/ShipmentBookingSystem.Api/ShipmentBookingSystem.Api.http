@@ -1,6 +1,36 @@
-@ShipmentBookingSystem.Api_HostAddress = http://localhost:5198
+@hostname = localhost
+@port = 7089
+@host = https://{{hostname}}:{{port}}
 
-GET {{ShipmentBookingSystem.Api_HostAddress}}/weatherforecast/
+### 1. Utworzenie nowej przesyłki (POST)
+# Ten endpoint uruchamia walidację, zapis do bazy i publikację zdarzenia.
+POST {{host}}/shipments
+Content-Type: application/json
+
+{
+  "customerId": 123,
+  "shipmentNumber": "",
+  "items": [
+    { "productCode": "TV", "quantity": -2, "unitPrice": 2500.00 },
+    { "productCode": "CABLE", "quantity": 5, "unitPrice": 50.00 }
+  ]
+}
+
+### 2. Próba utworzenia przesyłki z błędnymi danymi (Walidacja)
+# Powinno zwrócić 400 Bad Request (quantity i unitPrice <= 0).
+POST {{host}}/shipments
+Content-Type: application/json
+
+{
+  "customerId": 123,
+  "shipmentNumber": "",
+  "items": [
+    { "productCode": "ERROR", "quantity": 0, "unitPrice": -10.00 }
+  ]
+}
+
+### 3. Pobranie podsumowania przesyłek (GET)
+# Wykorzystuje parametry filtrowania określone w zadaniu.
+# Agregacja i formatowanie JSON odbywa się po stronie SQL Server.
+GET {{host}}/shipments/summary?customerId=123&createdFrom=2026-01-01&createdTo=2026-03-31&minTotalAmount=1000&minShipments=1
 Accept: application/json
-
-###
