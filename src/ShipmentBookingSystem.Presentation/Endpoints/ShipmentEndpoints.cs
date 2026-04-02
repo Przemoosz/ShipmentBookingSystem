@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http;
 using ShipmentBookingSystem.Application.Interfaces;
 using ShipmentBookingSystem.Application.Validators;
 using ShipmentBookingSystem.Domain.Entities;
+using ShipmentBookingSystem.Domain.Events;
+using Wolverine;
 using Wolverine.Attributes;
 using Wolverine.Http;
 
@@ -12,14 +14,16 @@ namespace ShipmentBookingSystem.Presentation.Endpoints;
 public static class ShipmentEndpoints
 {
 	[WolverinePost("/shipments")]
-	[Transactional] 
+	// [Transactional] 
 	public static async Task<IResult> Post(CreateShipment request,
 			IShipmentRepository shipmentRepository,
-			IDbConnection connection)
+			IDbConnection connection, IMessageContext context)
 		// CreateShipment command, 
 		// IDbConnection conn, 
 		// IMessageBus bus)
 	{
+		using var transaction = connection.BeginTransaction();
+		
 		Shipment shipment = new Shipment()
 		{
 			CreatedAt = DateTime.UtcNow,
@@ -35,10 +39,20 @@ public static class ShipmentEndpoints
 			Quantity = dto.Quantity,
 			UnitPrice = dto.UnitPrice,
 		}).ToList();
-		
-		const string sqlShipment = "INSERT INTO Shipments (Id, ShipmentNumber, CustomerId, CreatedAt) VALUES (@Id, @ShipmentNumber, @CustomerId, @CreatedAt)";
-		await connection.ExecuteAsync(new CommandDefinition(sqlShipment, shipment, cancellationToken: CancellationToken.None));
-		throw new ArgumentException();
+
+		try
+		{
+			const string sqlShipment = "INSERT INTO Shipments (Id, ShipmentNumber, CustomerId, CreatedAt) VALUES (@Id, @ShipmentNumber, @CustomerId, @CreatedAt)";
+			await connection.ExecuteAsync(new CommandDefinition(sqlShipment, shipment, cancellationToken: CancellationToken.None, transaction: transaction));
+			await context.PublishAsync(new ShipmentCreatedEvent(){ CustomerId = shipment.CustomerId, ShipmentId = shipment.Id, ShipmentNumber = shipment.ShipmentNumber });
+			//throw new ArgumentException();
+			transaction.Commit();
+		}
+		catch
+		{
+			transaction.Rollback();
+			throw;
+		}
 		const string sqlItem = "INSERT INTO ShipmentItems (Id, ShipmentId, ProductCode, Quantity, UnitPrice) VALUES (@Id, @ShipmentId, @ProductCode, @Quantity, @UnitPrice)";
 		await connection.ExecuteAsync(new CommandDefinition(sqlItem, shipmentsItems, cancellationToken: CancellationToken.None));
 		// await shipmentRepository.SaveAsync(shipment, shipmentsItems, CancellationToken.None);

@@ -33,8 +33,15 @@ namespace ShipmentBookingSystem.Api
 				throw new ArgumentNullException(nameof(connectionString),
 					"Connection string is empty");
 			}
-			builder.Host.UseWolverine(opts =>
+
+
+			builder.Services.AddScoped<IDbConnection>(_ =>
 			{
+				var conn = new SqlConnection(connectionString);
+				conn.Open();
+				return conn;
+			});
+			builder.Host.UseWolverine(opts =>{
 				var assembly = Assembly.Load("ShipmentBookingSystem.Presentation");
 				opts.Discovery.IncludeAssembly(assembly);
 				opts.UseFluentValidation();
@@ -46,8 +53,7 @@ namespace ShipmentBookingSystem.Api
 			builder.Services.AddControllers();
 			builder.Services.AddWolverineHttp();
 			builder.Services.AddOpenApi();
-			builder.Services.AddScoped<IDbConnection>(_ => 
-				new SqlConnection(connectionString));
+
 			var app = builder.Build();
 			
 
