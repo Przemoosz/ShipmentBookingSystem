@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using ShipmentBookingSystem.Application.Interfaces;
 using ShipmentBookingSystem.Infrastructure.Database;
+using ShipmentBookingSystem.Infrastructure.OutboxEvent;
 using ShipmentBookingSystem.Infrastructure.Repository;
 
 namespace ShipmentBookingSystem.Infrastructure
@@ -11,6 +12,7 @@ namespace ShipmentBookingSystem.Infrastructure
 		{
 			serviceCollection.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
 			serviceCollection.AddScoped<IShipmentRepository, ShipmentRepository>();
+			serviceCollection.AddScoped<IOutboxService, OutboxService>();
 		}
 	}
 }

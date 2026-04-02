@@ -14,13 +14,9 @@ namespace ShipmentBookingSystem.Presentation.Endpoints;
 public static class ShipmentEndpoints
 {
 	[WolverinePost("/shipments")]
-	// [Transactional] 
 	public static async Task<IResult> Post(CreateShipment request,
 			IShipmentRepository shipmentRepository,
-			IDbConnection connection, IMessageContext context)
-		// CreateShipment command, 
-		// IDbConnection conn, 
-		// IMessageBus bus)
+			IDbConnection connection, IOutboxService outboxService)
 	{
 		using var transaction = connection.BeginTransaction();
 		
@@ -44,8 +40,24 @@ public static class ShipmentEndpoints
 		{
 			const string sqlShipment = "INSERT INTO Shipments (Id, ShipmentNumber, CustomerId, CreatedAt) VALUES (@Id, @ShipmentNumber, @CustomerId, @CreatedAt)";
 			await connection.ExecuteAsync(new CommandDefinition(sqlShipment, shipment, cancellationToken: CancellationToken.None, transaction: transaction));
-			await context.PublishAsync(new ShipmentCreatedEvent(){ CustomerId = shipment.CustomerId, ShipmentId = shipment.Id, ShipmentNumber = shipment.ShipmentNumber });
-			//throw new ArgumentException();
+			const string sqlItem = "INSERT INTO ShipmentItems (Id, ShipmentId, ProductCode, Quantity, UnitPrice) VALUES (@Id, @ShipmentId, @ProductCode, @Quantity, @UnitPrice)";
+			await connection.ExecuteAsync(new CommandDefinition(sqlItem, shipmentsItems, cancellationToken: CancellationToken.None, transaction: transaction));
+			
+			var totalAmount = shipmentsItems.Sum(x => x.Quantity * x.UnitPrice);
+
+			var shipmentCreatedEvent = new ShipmentCreatedEvent()
+			{
+				EventId = Guid.NewGuid(),
+				ShipmentId = shipment.Id,
+				ShipmentNumber = shipment.ShipmentNumber,
+				CustomerId = shipment.CustomerId,
+				TotalAmount = totalAmount,
+				OccurredAt = DateTime.UtcNow
+			};
+			await outboxService.SaveEventAsync(
+				nameof(ShipmentCreatedEvent),
+				shipmentCreatedEvent,
+				connection, transaction);
 			transaction.Commit();
 		}
 		catch
@@ -53,10 +65,6 @@ public static class ShipmentEndpoints
 			transaction.Rollback();
 			throw;
 		}
-		const string sqlItem = "INSERT INTO ShipmentItems (Id, ShipmentId, ProductCode, Quantity, UnitPrice) VALUES (@Id, @ShipmentId, @ProductCode, @Quantity, @UnitPrice)";
-		await connection.ExecuteAsync(new CommandDefinition(sqlItem, shipmentsItems, cancellationToken: CancellationToken.None));
-		// await shipmentRepository.SaveAsync(shipment, shipmentsItems, CancellationToken.None);
-		Console.WriteLine("created abc ");
 		return Results.Created();
 	}
 }
