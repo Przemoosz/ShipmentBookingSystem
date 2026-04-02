@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using ShipmentBookingSystem.Application.Interfaces;
 using ShipmentBookingSystem.Infrastructure.Database;
+using ShipmentBookingSystem.Infrastructure.Repository;
 
 namespace ShipmentBookingSystem.Infrastructure
 {
@@ -7,7 +9,8 @@ namespace ShipmentBookingSystem.Infrastructure
 	{
 		public static void InstallInfrastructure(this IServiceCollection serviceCollection)
 		{
-			serviceCollection.AddTransient<IDatabaseInitializer, DatabaseInitializer>();
+			serviceCollection.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
+			serviceCollection.AddScoped<IShipmentRepository, ShipmentRepository>();
 		}
 	}
 }

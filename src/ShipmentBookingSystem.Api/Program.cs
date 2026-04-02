@@ -13,6 +13,7 @@ using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Http;
 using Wolverine.Http.FluentValidation;
+using Wolverine.SqlServer;
 
 namespace ShipmentBookingSystem.Api
 {
@@ -26,21 +27,30 @@ namespace ShipmentBookingSystem.Api
 			builder.Services.InstallDomain();
 			builder.Services.InstallInfrastructure();
 			builder.Services.InstallPresentation();
+			var connectionString = builder.Configuration.GetConnectionString("Default");
+			if (string.IsNullOrEmpty(connectionString))
+			{
+				throw new ArgumentNullException(nameof(connectionString),
+					"Connection string is empty");
+			}
 			builder.Host.UseWolverine(opts =>
 			{
 				var assembly = Assembly.Load("ShipmentBookingSystem.Presentation");
 				opts.Discovery.IncludeAssembly(assembly);
 				opts.UseFluentValidation();
 				opts.UseFluentValidationProblemDetail();
+				opts.PersistMessagesWithSqlServer(connectionString);
 				opts.Services.AddResourceSetupOnStartup();
+				opts.Policies.AutoApplyTransactions();
 			});
 			builder.Services.AddControllers();
 			builder.Services.AddWolverineHttp();
 			builder.Services.AddOpenApi();
-
+			builder.Services.AddScoped<IDbConnection>(_ => 
+				new SqlConnection(connectionString));
 			var app = builder.Build();
-			var connectionString = builder.Configuration.GetConnectionString("Master");
-			Console.WriteLine(connectionString);
+			
+
 
 			if (app.Environment.IsDevelopment())
 			{
@@ -54,15 +64,17 @@ namespace ShipmentBookingSystem.Api
 			app.UseHttpsRedirection();
 			
 			app.UseAuthorization();
-			var dbInitializer = app.Services.GetService<IDatabaseInitializer>();
-			if (string.IsNullOrEmpty(connectionString) || dbInitializer == null)
+			using (IServiceScope scope = app.Services.CreateScope())
 			{
-				throw new InvalidOperationException(
-					"Can not initialize database initializer or connection string is empty");
-			}
+				var dbInitializer = scope.ServiceProvider.GetService<IDatabaseInitializer>();
+				if (dbInitializer == null)
+				{
+					throw new InvalidOperationException(
+						"Can not initialize database initializer");
+				}
+				await dbInitializer.InitializeAsync(connectionString);
 
-			await dbInitializer.InitializeAsync(connectionString);
-			
+			}
 			await app.RunAsync();
 		}
 	}

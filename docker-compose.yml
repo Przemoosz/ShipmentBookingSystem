@@ -9,8 +9,7 @@ services:
       - "8080:8080"
       - "8081:8081"
     environment:
-      - ConnectionStrings__Master=Server=shipment_db,1433;Database=master;User Id=sa;Password=TwojeMocneHaslo123!;TrustServerCertificate=True
-      - ConnectionStrings__Default=Server=shipment_db,1433;Database=ShipmentsDb;User Id=sa;Password=TwojeMocneHaslo123!;TrustServerCertificate=True
+      - ConnectionStrings__Default=Server=shipment_db,1433;Database=master;User Id=sa;Password=TwojeMocneHaslo123!;TrustServerCertificate=True
     depends_on:
       - shipment_booking_system.database
   shipment_booking_system.database:

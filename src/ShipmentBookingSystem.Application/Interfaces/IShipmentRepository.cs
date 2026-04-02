@@ -1,8 +1,10 @@
-﻿using ShipmentBookingSystem.Domain.Entities;
+﻿using System.Data;
+using ShipmentBookingSystem.Domain.Entities;
 
 namespace ShipmentBookingSystem.Application.Interfaces;
 
 public interface IShipmentRepository
 {
-	Task AddAsync(Shipment shipment, IEnumerable<ShipmentItem> items);
+	Task SaveAsync(Shipment shipment, IEnumerable<ShipmentItem> items, IDbTransaction transaction,
+		CancellationToken ct);
 }

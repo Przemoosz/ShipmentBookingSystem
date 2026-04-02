@@ -1,12 +1,13 @@
-﻿using Dapper;
-using Microsoft.Data.SqlClient;
+﻿using System.Data;
+using Dapper;
 
 namespace ShipmentBookingSystem.Infrastructure.Database;
 
 internal sealed class DatabaseInitializer : IDatabaseInitializer
 {
+	private readonly IDbConnection _dbConnection;
+
 	private const string SqlScript = @"
-		USE ShipmentDb;
 		IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Shipments')
 		BEGIN
 		    CREATE TABLE Shipments (
@@ -26,14 +27,13 @@ internal sealed class DatabaseInitializer : IDatabaseInitializer
 		    );
 		END";
 
+	public DatabaseInitializer(IDbConnection dbConnection)
+	{
+		_dbConnection = dbConnection;
+	}
+	
 	public async Task InitializeAsync(string connectionString)
 	{
-		await using var conn = new SqlConnection(connectionString);
-		await conn.ExecuteAsync(@"
-        IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'ShipmentDb')
-        BEGIN
-            CREATE DATABASE ShipmentDb;
-        END");
-		await conn.ExecuteAsync(SqlScript);
+		await _dbConnection.ExecuteAsync(SqlScript);
 	}
 }
