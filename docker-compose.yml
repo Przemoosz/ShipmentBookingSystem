@@ -10,8 +10,11 @@ services:
       - "8081:8081"
     environment:
       - ConnectionStrings__Default=Server=shipment_db,1433;Database=master;User Id=sa;Password=TwojeMocneHaslo123!;TrustServerCertificate=True
+      - Kafka__BootstrapServers=shipment_booking_system.kafka:9092
+
     depends_on:
       - shipment_booking_system.database
+      - shipment_booking_system.kafka
   shipment_booking_system.database:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: shipment_db
@@ -34,5 +37,14 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://shipment_booking_system.kafka:9092
       - KAFKA_CONTROLLER_QUORUM_VOTERS=1@shipment_booking_system.kafka:9093
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+  shipment_booking_system.kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: shipment_kafdrop
+    ports:
+      - "9000:9000"
+    environment:
+      - KAFKA_BROKERCONNECT=shipment_booking_system.kafka:9092
+    depends_on:
+      - shipment_booking_system.kafka
 volumes:
   sql_data:

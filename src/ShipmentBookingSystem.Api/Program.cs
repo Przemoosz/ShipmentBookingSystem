@@ -8,11 +8,14 @@ using System.Data.SqlClient;
 using System.Reflection;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using ShipmentBookingSystem.Domain.Entities;
+using ShipmentBookingSystem.Domain.Events;
 using ShipmentBookingSystem.Infrastructure.Database;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Http;
 using Wolverine.Http.FluentValidation;
+using Wolverine.Kafka;
 using Wolverine.SqlServer;
 
 namespace ShipmentBookingSystem.Api
@@ -34,6 +37,9 @@ namespace ShipmentBookingSystem.Api
 					"Connection string is empty");
 			}
 
+			var kafkaBootstrapServers = builder.Configuration.GetSection("Kafka:BootstrapServers").Value; 
+
+
 
 			builder.Services.AddScoped<IDbConnection>(_ =>
 			{
@@ -49,11 +55,26 @@ namespace ShipmentBookingSystem.Api
 				opts.PersistMessagesWithSqlServer(connectionString);
 				opts.Services.AddResourceSetupOnStartup();
 				opts.Policies.AutoApplyTransactions();
+				opts.UseKafka(kafkaBootstrapServers);
+				opts.PublishMessage<string>()
+					.ToKafkaTopic("colors")
+					.Specification(spec =>
+					{
+						spec.NumPartitions = 1;
+						spec.ReplicationFactor = 1;
+					})
+					.TopicCreation(async (client, topic) =>
+					{
+						topic.Specification.NumPartitions = 1;
+						topic.Specification.ReplicationFactor = 1;
+						await client.CreateTopicsAsync([topic.Specification]);
+					});
+
 			});
 			builder.Services.AddControllers();
 			builder.Services.AddWolverineHttp();
 			builder.Services.AddOpenApi();
-
+			builder.Services.AddHostedService<KafkaEventWorkerHostedService>();
 			var app = builder.Build();
 
 			if (app.Environment.IsDevelopment())

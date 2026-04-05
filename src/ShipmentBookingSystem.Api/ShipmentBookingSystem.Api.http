@@ -9,7 +9,7 @@ Content-Type: application/json
 
 {
   "customerId": 1243,
-  "shipmentNumber": "avssd",
+  "shipmentNumber": "avssddsadasd",
   "items": [
     { "productCode": "TVa", "quantity": 2, "unitPrice": 2500.00 },
     { "productCode": "CABLEa", "quantity": 5, "unitPrice": 50.00 }

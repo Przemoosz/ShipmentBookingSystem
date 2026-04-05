@@ -8,6 +8,7 @@ using ShipmentBookingSystem.Domain.Events;
 using Wolverine;
 using Wolverine.Attributes;
 using Wolverine.Http;
+using Wolverine.Persistence.Durability;
 
 namespace ShipmentBookingSystem.Presentation.Endpoints;
 
@@ -16,7 +17,7 @@ public static class ShipmentEndpoints
 	[WolverinePost("/shipments")]
 	public static async Task<IResult> Post(CreateShipment request,
 			IShipmentRepository shipmentRepository,
-			IDbConnection connection, IOutboxService outboxService)
+			IDbConnection connection, IOutboxService outboxService, IMessageBus bus)
 	{
 		using var transaction = connection.BeginTransaction();
 		
@@ -55,10 +56,12 @@ public static class ShipmentEndpoints
 				OccurredAt = DateTime.UtcNow
 			};
 			await outboxService.SaveEventAsync(
+				shipmentCreatedEvent.EventId,
 				nameof(ShipmentCreatedEvent),
 				shipmentCreatedEvent,
 				connection, transaction);
 			transaction.Commit();
+			// await bus.PublishAsync(shipmentCreatedEvent);
 		}
 		catch
 		{

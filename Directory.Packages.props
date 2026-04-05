@@ -16,6 +16,7 @@
     <PackageVersion Include="WolverineFx" Version="5.27.0" />
     <PackageVersion Include="WolverineFx.Http" Version="5.27.0" />
     <PackageVersion Include="WolverineFx.Http.FluentValidation" Version="5.27.0" />
+    <PackageVersion Include="WolverineFx.Kafka" Version="5.27.0" />
     <PackageVersion Include="WolverineFx.SqlServer" Version="5.27.0" />
   </ItemGroup>
 </Project>

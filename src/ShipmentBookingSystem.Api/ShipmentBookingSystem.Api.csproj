@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
 	<PackageReference Include="Dapper" />
+	<PackageReference Include="WolverineFx.Kafka" />
 	<PackageReference Include="WolverineFx.SqlServer" />
   </ItemGroup>
 
