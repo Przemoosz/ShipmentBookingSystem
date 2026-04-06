@@ -21,7 +21,7 @@ internal class ShipmentRepository : IShipmentRepository
     (
         SELECT si.ProductCode as productCode,
         SUM(si.Quantity) as totalQuantity
-        FROM ShipmentsItems si
+        FROM ShipmentItems si
         WHERE si.ShipmentId IN
         (
             SELECT Id FROM Shipments 
@@ -31,11 +31,11 @@ internal class ShipmentRepository : IShipmentRepository
         FOR JSON PATH
     ) as products
     FROM Shipments s
-    OUTTER APPLY
+    OUTER APPLY
     (
         SELECT SUM (Quantity * UnitPrice)
-        AS TotalShipmentsAmount
-        FROM ShipmentsItems
+        AS TotalShipmentAmount
+        FROM ShipmentItems
         WHERE ShipmentID = s.Id
     ) items
     WHERE
@@ -44,11 +44,10 @@ internal class ShipmentRepository : IShipmentRepository
     s.CreatedAt <= @createdTo 
     GROUP BY s.CustomerId
     HAVING SUM
-    (
-    items.TotalShipmentsAmount >= @minTotalAmount
+    (items.TotalShipmentAmount) >= @minTotalAmount
     AND
     COUNT (s.Id) >= @minShipments
-    )
+    
     FOR JSON PATH
 ";
 
@@ -82,7 +81,8 @@ internal class ShipmentRepository : IShipmentRepository
                 createdTo = createdTo,
                 minTotalAmount = minTotalAmount,
                 minShipments = minShipments
-            }));
+            }, transaction: _transaction));
+        _transaction.Commit();
         var summaryObject = JsonConvert.DeserializeObject<ShipmentSummary>(summary);
         return summaryObject;
     }

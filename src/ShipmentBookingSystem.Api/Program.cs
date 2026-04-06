@@ -7,6 +7,7 @@ using ShipmentBookingSystem.Infrastructure.Database;
 using ShipmentBookingSystem.Presentation;
 using System.Data;
 using System.Reflection;
+using ShipmentBookingSystem.Domain.Events;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Http;
@@ -54,8 +55,8 @@ namespace ShipmentBookingSystem.Api
 				opts.Services.AddResourceSetupOnStartup();
 				opts.Policies.AutoApplyTransactions(); // tbr
 				opts.UseKafka(kafkaBootstrapServers); // add null check
-				opts.PublishMessage<string>()
-					.ToKafkaTopic("colors")
+				opts.PublishMessage<ShipmentCreatedEvent>()
+					.ToKafkaTopic("shipment-created-event")
 					.Specification(spec =>
 					{
 						spec.NumPartitions = 1;

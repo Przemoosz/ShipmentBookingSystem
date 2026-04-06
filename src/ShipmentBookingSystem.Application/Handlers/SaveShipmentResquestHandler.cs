@@ -7,7 +7,7 @@ using Wolverine;
 
 namespace ShipmentBookingSystem.Application.Handlers;
 
-internal sealed class SaveShipmentResquestHandler
+public sealed class SaveShipmentResquestHandler
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMessageBus _messageBus;

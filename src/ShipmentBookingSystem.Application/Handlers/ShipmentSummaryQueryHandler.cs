@@ -4,7 +4,7 @@ using ShipmentBookingSystem.Domain.Models;
 
 namespace ShipmentBookingSystem.Application.Handlers;
 
-internal sealed class ShipmentSummaryQueryHandler
+public sealed class ShipmentSummaryQueryHandler
 {
     private IShipmentRepository _shipmentRepository;
 

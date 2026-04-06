@@ -32,5 +32,5 @@ Content-Type: application/json
 ### 3. Pobranie podsumowania przesyłek (GET)
 # Wykorzystuje parametry filtrowania określone w zadaniu.
 # Agregacja i formatowanie JSON odbywa się po stronie SQL Server.
-GET {{host}}/shipments/summary?customerId=123&createdFrom=2026-01-01&createdTo=2026-03-31&minTotalAmount=1000&minShipments=1
+GET {{host}}/shipments/summary?customerId=1234&createdFrom=2026-01-01&createdTo=2026-03-31&minTotalAmount=1&minShipments=1
 Accept: application/json

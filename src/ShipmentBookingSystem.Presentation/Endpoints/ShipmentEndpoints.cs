@@ -94,7 +94,7 @@ public static class ShipmentEndpoints
 	}
 
     [WolverinePost("/shipments")]
-    public static async Task<IResult> Post2(CreateShipmentRequest request,
+    public static async Task<IResult> Get(CreateShipmentRequest request,
         IMessageBus messageBus, 
 		CancellationToken cancellationToken)
     {
