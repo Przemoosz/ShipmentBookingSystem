@@ -1,8 +1,9 @@
 ﻿using FluentValidation;
+using ShipmentBookingSystem.Application.Requests;
 
 namespace ShipmentBookingSystem.Application.Validators;
 
-internal sealed class CreateShipmentValidator: AbstractValidator<CreateShipment>
+internal sealed class CreateShipmentValidator: AbstractValidator<CreateShipmentRequest>
 {
 	public CreateShipmentValidator()
 	{
@@ -16,10 +17,3 @@ internal sealed class CreateShipmentValidator: AbstractValidator<CreateShipment>
 		// to do check if shipment does not exist
 	}
 }
-
-public record CreateShipment(
-	string ShipmentNumber, 
-	int CustomerId, 
-	List<ShipmentItemDto> Items);
-
-public record ShipmentItemDto(string ProductCode, int Quantity, decimal UnitPrice);

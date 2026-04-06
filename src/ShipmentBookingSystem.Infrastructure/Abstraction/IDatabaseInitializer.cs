@@ -2,5 +2,5 @@
 
 public interface IDatabaseInitializer
 {
-	Task InitializeAsync(string connectionString);
+	Task InitializeAsync();
 }

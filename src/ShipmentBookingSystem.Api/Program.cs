@@ -1,16 +1,12 @@
 using JasperFx.Resources;
+using Microsoft.Data.SqlClient;
 using ShipmentBookingSystem.Application;
 using ShipmentBookingSystem.Domain;
 using ShipmentBookingSystem.Infrastructure;
+using ShipmentBookingSystem.Infrastructure.Database;
 using ShipmentBookingSystem.Presentation;
 using System.Data;
-using System.Data.SqlClient;
 using System.Reflection;
-using Dapper;
-using Microsoft.Data.SqlClient;
-using ShipmentBookingSystem.Domain.Entities;
-using ShipmentBookingSystem.Domain.Events;
-using ShipmentBookingSystem.Infrastructure.Database;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Http;
@@ -44,18 +40,20 @@ namespace ShipmentBookingSystem.Api
 			builder.Services.AddScoped<IDbConnection>(_ =>
 			{
 				var conn = new SqlConnection(connectionString);
-				conn.Open();
+				conn.Open(); // probably tbr
 				return conn;
 			});
 			builder.Host.UseWolverine(opts =>{
-				var assembly = Assembly.Load("ShipmentBookingSystem.Presentation");
-				opts.Discovery.IncludeAssembly(assembly);
+				var presentationAssembly = Assembly.Load("ShipmentBookingSystem.Presentation");
+				var applicationAssembly = Assembly.Load("ShipmentBookingSystem.Application");
+				opts.Discovery.IncludeAssembly(presentationAssembly);
+				opts.Discovery.IncludeAssembly(applicationAssembly);
 				opts.UseFluentValidation();
 				opts.UseFluentValidationProblemDetail();
-				opts.PersistMessagesWithSqlServer(connectionString);
+				opts.PersistMessagesWithSqlServer(connectionString); // tbr
 				opts.Services.AddResourceSetupOnStartup();
-				opts.Policies.AutoApplyTransactions();
-				opts.UseKafka(kafkaBootstrapServers);
+				opts.Policies.AutoApplyTransactions(); // tbr
+				opts.UseKafka(kafkaBootstrapServers); // add null check
 				opts.PublishMessage<string>()
 					.ToKafkaTopic("colors")
 					.Specification(spec =>
@@ -71,22 +69,21 @@ namespace ShipmentBookingSystem.Api
 					});
 
 			});
-			builder.Services.AddControllers();
+			builder.Services.AddControllers(); //tbr
 			builder.Services.AddWolverineHttp();
-			builder.Services.AddOpenApi();
-			builder.Services.AddHostedService<KafkaEventWorkerHostedService>();
+			builder.Services.AddOpenApi(); //tbr
 			var app = builder.Build();
 
 			if (app.Environment.IsDevelopment())
 			{
-				app.MapOpenApi();
+				app.MapOpenApi(); // tbr
 			}
 			
 			app.MapWolverineEndpoints(opts => {
 				opts.UseFluentValidationProblemDetailMiddleware(); 
 				opts.UseDataAnnotationsValidationProblemDetailMiddleware();
 			});
-			app.UseHttpsRedirection();
+			app.UseHttpsRedirection(); // probably tbr
 			
 			app.UseAuthorization();
 			using (IServiceScope scope = app.Services.CreateScope())
@@ -97,7 +94,7 @@ namespace ShipmentBookingSystem.Api
 					throw new InvalidOperationException(
 						"Can not initialize database initializer");
 				}
-				await dbInitializer.InitializeAsync(connectionString);
+				await dbInitializer.InitializeAsync();
 
 			}
 			await app.RunAsync();

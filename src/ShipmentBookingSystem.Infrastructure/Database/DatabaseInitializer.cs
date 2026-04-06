@@ -51,7 +51,7 @@ internal sealed class DatabaseInitializer : IDatabaseInitializer
 		_dbConnection = dbConnection;
 	}
     
-	public async Task InitializeAsync(string connectionString)
+	public async Task InitializeAsync()
 	{
 		await _dbConnection.ExecuteAsync(SqlScript);
 	}
