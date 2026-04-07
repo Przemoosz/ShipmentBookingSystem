@@ -47,8 +47,7 @@ internal class ShipmentRepository : IShipmentRepository
     (items.TotalShipmentAmount) >= @minTotalAmount
     AND
     COUNT (s.Id) >= @minShipments
-    
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
 ";
 
     private readonly IDbConnection _dbConnection;
@@ -82,7 +81,7 @@ internal class ShipmentRepository : IShipmentRepository
                 minTotalAmount = minTotalAmount,
                 minShipments = minShipments
             }, transaction: _transaction));
-        _transaction.Commit();
+        // _transaction.Commit();
         var summaryObject = JsonConvert.DeserializeObject<ShipmentSummary>(summary);
         return summaryObject;
     }

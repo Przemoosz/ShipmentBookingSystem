@@ -16,5 +16,5 @@ src/ShipmentBookingSystem.Presentation/bin
 src/ShipmentBookingSystem.Presentation/obj
 src/ShipmentBookingSystem.Shared/bin
 src/ShipmentBookingSystem.Shared/obj
-src/ShipmentBookingSystem.Tests/bin
-src/ShipmentBookingSystem.Tests/obj
+tests/ShipmentBookingSystem.IntegrationTests/bin
+tests/ShipmentBookingSystem.IntegrationTests/obj

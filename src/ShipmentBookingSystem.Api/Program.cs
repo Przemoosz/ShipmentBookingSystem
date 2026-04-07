@@ -28,20 +28,22 @@ namespace ShipmentBookingSystem.Api
 			builder.Services.InstallInfrastructure();
 			builder.Services.InstallPresentation();
 			var connectionString = builder.Configuration.GetConnectionString("Default");
-			if (string.IsNullOrEmpty(connectionString))
-			{
-				throw new ArgumentNullException(nameof(connectionString),
-					"Connection string is empty");
-			}
+			//if (string.IsNullOrEmpty(connectionString))
+			//{
+			//	throw new ArgumentNullException(nameof(connectionString),
+			//		"Connection string is empty");
+			//}
 
 			var kafkaBootstrapServers = builder.Configuration.GetSection("Kafka:BootstrapServers").Value; 
 
 
 
-			builder.Services.AddScoped<IDbConnection>(_ =>
+			builder.Services.AddScoped<IDbConnection>(serviceProvider =>
 			{
-				var conn = new SqlConnection(connectionString);
-				conn.Open(); // probably tbr
+				var a = builder.Configuration.GetConnectionString("Default");
+
+                var conn = new SqlConnection(a);
+				conn.Open();
 				return conn;
 			});
 			builder.Host.UseWolverine(opts =>{
@@ -51,10 +53,10 @@ namespace ShipmentBookingSystem.Api
 				opts.Discovery.IncludeAssembly(applicationAssembly);
 				opts.UseFluentValidation();
 				opts.UseFluentValidationProblemDetail();
-				opts.PersistMessagesWithSqlServer(connectionString); // tbr
+				// opts.PersistMessagesWithSqlServer(connectionString); // tbr
 				opts.Services.AddResourceSetupOnStartup();
 				opts.Policies.AutoApplyTransactions(); // tbr
-				opts.UseKafka(kafkaBootstrapServers); // add null check
+				opts.UseKafka(builder.Configuration.GetSection("Kafka:BootstrapServers").Value); // add null check
 				opts.PublishMessage<ShipmentCreatedEvent>()
 					.ToKafkaTopic("shipment-created-event")
 					.Specification(spec =>
