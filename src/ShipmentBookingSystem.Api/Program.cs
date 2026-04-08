@@ -1,19 +1,18 @@
+using System.Data;
+using System.Reflection;
 using JasperFx.Resources;
 using Microsoft.Data.SqlClient;
 using ShipmentBookingSystem.Application;
 using ShipmentBookingSystem.Domain;
-using ShipmentBookingSystem.Infrastructure;
-using ShipmentBookingSystem.Infrastructure.Database;
-using ShipmentBookingSystem.Presentation;
-using System.Data;
-using System.Reflection;
 using ShipmentBookingSystem.Domain.Events;
+using ShipmentBookingSystem.Infrastructure;
+using ShipmentBookingSystem.Infrastructure.Abstraction;
+using ShipmentBookingSystem.Presentation;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Http;
 using Wolverine.Http.FluentValidation;
 using Wolverine.Kafka;
-using Wolverine.SqlServer;
 
 namespace ShipmentBookingSystem.Api
 {
@@ -27,17 +26,6 @@ namespace ShipmentBookingSystem.Api
 			builder.Services.InstallDomain();
 			builder.Services.InstallInfrastructure();
 			builder.Services.InstallPresentation();
-			var connectionString = builder.Configuration.GetConnectionString("Default");
-			//if (string.IsNullOrEmpty(connectionString))
-			//{
-			//	throw new ArgumentNullException(nameof(connectionString),
-			//		"Connection string is empty");
-			//}
-
-			var kafkaBootstrapServers = builder.Configuration.GetSection("Kafka:BootstrapServers").Value; 
-
-
-
 			builder.Services.AddScoped<IDbConnection>(serviceProvider =>
 			{
 				var a = builder.Configuration.GetConnectionString("Default");

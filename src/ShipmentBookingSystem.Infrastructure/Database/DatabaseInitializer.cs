@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using Dapper;
+using ShipmentBookingSystem.Infrastructure.Abstraction;
 
 namespace ShipmentBookingSystem.Infrastructure.Database;
 
@@ -25,24 +26,6 @@ internal sealed class DatabaseInitializer : IDatabaseInitializer
                 UnitPrice DECIMAL(18, 2) NOT NULL,
                 FOREIGN KEY (ShipmentId) REFERENCES Shipments(Id)
             );
-        END;
-
-        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'OutboxEvents')
-        BEGIN
-            CREATE TABLE [dbo].[OutboxEvents]
-            (
-                Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-                EventType NVARCHAR(500) NOT NULL,
-                Payload NVARCHAR(MAX) NOT NULL,
-                CreatedAt DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-                ProcessedAt DATETIME2 NULL,
-                Attempts INT DEFAULT 0,
-                LastError NVARCHAR(MAX) NULL,
-                IsProcessed BIT DEFAULT 0
-            );
-            
-            CREATE INDEX IX_OutboxEvents_Processed 
-                ON [dbo].[OutboxEvents](IsProcessed, CreatedAt);
         END;
     ";
 

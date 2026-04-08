@@ -81,7 +81,6 @@ internal class ShipmentRepository : IShipmentRepository
                 minTotalAmount = minTotalAmount,
                 minShipments = minShipments
             }, transaction: _transaction));
-        // _transaction.Commit();
         var summaryObject = JsonConvert.DeserializeObject<ShipmentSummary>(summary);
         return summaryObject;
     }

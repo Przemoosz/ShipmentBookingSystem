@@ -65,8 +65,6 @@ namespace ShipmentBookingSystem.IntegrationTests
 
             builder.ConfigureAppConfiguration((context, config) =>
             {
-                // 1. Zamiast Clear(), po prostu dodaj nową kolekcję na końcu. 
-                // Ostatnie dodane źródło zawsze nadpisuje poprzednie (Last in wins).
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     ["ConnectionStrings:Default"] = a,

@@ -1,4 +1,4 @@
-﻿namespace ShipmentBookingSystem.Infrastructure.Database;
+﻿namespace ShipmentBookingSystem.Infrastructure.Abstraction;
 
 public interface IDatabaseInitializer
 {

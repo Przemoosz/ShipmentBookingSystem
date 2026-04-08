@@ -57,7 +57,6 @@ public sealed class SaveShipmentResquestHandler
 
         try
         {
-
             await _unitOfWork.ShipmentRepository.AddShipmentAsync(shipment, ct);
             await _unitOfWork.ShipmentRepository.AddShipmentItemsAsync(shipmentItems, ct);
 

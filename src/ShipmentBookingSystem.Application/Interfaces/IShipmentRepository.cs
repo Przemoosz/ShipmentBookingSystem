@@ -1,5 +1,4 @@
-﻿using System.Data;
-using ShipmentBookingSystem.Domain.Entities;
+﻿using ShipmentBookingSystem.Domain.Entities;
 using ShipmentBookingSystem.Domain.Models;
 
 namespace ShipmentBookingSystem.Application.Interfaces;
