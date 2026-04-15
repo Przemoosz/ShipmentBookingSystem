@@ -1,5 +1,4 @@
-using System.Data;
-using System.Reflection;
+using Confluent.Kafka;
 using JasperFx.Resources;
 using Microsoft.Data.SqlClient;
 using ShipmentBookingSystem.Application;
@@ -8,6 +7,8 @@ using ShipmentBookingSystem.Domain.Events;
 using ShipmentBookingSystem.Infrastructure;
 using ShipmentBookingSystem.Infrastructure.Abstraction;
 using ShipmentBookingSystem.Presentation;
+using System.Data;
+using System.Reflection;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Http;
@@ -34,14 +35,34 @@ namespace ShipmentBookingSystem.Api
 				conn.Open();
 				return conn;
 			});
-			builder.Host.UseWolverine(opts =>{
+
+            builder.Services.AddSingleton<IProducer<string, string>>(_ =>
+            {
+                var bootstrapServers = builder.Configuration["Kafka:BootstrapServers"]
+                    ?? throw new InvalidOperationException("Missing Kafka:BootstrapServers");
+
+                var config = new ProducerConfig
+                {
+                    BootstrapServers = bootstrapServers,
+                    Acks = Acks.All,
+                    EnableIdempotence = true,
+                    MessageSendMaxRetries = 3,
+                    RetryBackoffMs = 200,
+                    MessageTimeoutMs = 7000,
+                    RequestTimeoutMs = 5000
+                };
+
+                return new ProducerBuilder<string, string>(config).Build();
+            });
+
+
+            builder.Host.UseWolverine(opts =>{
 				var presentationAssembly = Assembly.Load("ShipmentBookingSystem.Presentation");
 				var applicationAssembly = Assembly.Load("ShipmentBookingSystem.Application");
 				opts.Discovery.IncludeAssembly(presentationAssembly);
 				opts.Discovery.IncludeAssembly(applicationAssembly);
 				opts.UseFluentValidation();
 				opts.UseFluentValidationProblemDetail();
-				// opts.PersistMessagesWithSqlServer(connectionString); // tbr
 				opts.Services.AddResourceSetupOnStartup();
 				opts.Policies.AutoApplyTransactions(); // tbr
 				opts.UseKafka(builder.Configuration.GetSection("Kafka:BootstrapServers").Value); // add null check

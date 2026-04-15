@@ -1,22 +1,23 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Confluent.Kafka;
+using Microsoft.Extensions.Logging;
 using ShipmentBookingSystem.Application.Interfaces;
 using ShipmentBookingSystem.Application.Requests;
 using ShipmentBookingSystem.Domain.Entities;
 using ShipmentBookingSystem.Domain.Events;
-using Wolverine;
+using System.Text.Json;
 
 namespace ShipmentBookingSystem.Application.Handlers;
 
 public sealed class SaveShipmentResquestHandler
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMessageBus _messageBus;
+    private readonly IProducer<string, string> _kafkaProducer;
     private readonly ILogger<SaveShipmentResquestHandler> _logger;
 
-    public SaveShipmentResquestHandler(IUnitOfWork unitOfWork, IMessageBus messageBus, ILogger<SaveShipmentResquestHandler> logger)
+    public SaveShipmentResquestHandler(IUnitOfWork unitOfWork, IProducer<string,string> kafkaProducer, ILogger<SaveShipmentResquestHandler> logger)
     {
         _unitOfWork = unitOfWork;
-        _messageBus = messageBus;
+        _kafkaProducer = kafkaProducer;
         _logger = logger;
     }
 
@@ -59,16 +60,31 @@ public sealed class SaveShipmentResquestHandler
         {
             await _unitOfWork.ShipmentRepository.AddShipmentAsync(shipment, ct);
             await _unitOfWork.ShipmentRepository.AddShipmentItemsAsync(shipmentItems, ct);
-
-            await _messageBus.PublishAsync(shipmentCreatedEvent);
-
             _unitOfWork.SaveChanges();
         }
         catch (Exception ex)
         {
             _unitOfWork.RollbackChanges();
             _logger.LogError("Failed to save and publish shipment information", ex);
+            throw;
         }
+
+        try
+        {
+            var payload = JsonSerializer.Serialize(shipmentCreatedEvent);
+            await _kafkaProducer.ProduceAsync(
+                "shipment-created-event",
+                new Message<string, string> { Key = shipment.Id.ToString(), Value = payload },
+                ct);
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.ShipmentRepository.RemoveShipmentItemsAsync(shipment.Id, ct);
+            await _unitOfWork.ShipmentRepository.RemoveShipmentAsync(shipment.Id, ct);
+            _logger.LogError("Failed to publish shipment created event to - rolling back DB", ex);
+            throw;
+        }
+        
     }
 
 }

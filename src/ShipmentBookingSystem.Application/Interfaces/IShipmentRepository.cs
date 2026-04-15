@@ -7,6 +7,10 @@ public interface IShipmentRepository
 {
 	Task AddShipmentAsync(Shipment shipment, CancellationToken ct);
     Task AddShipmentItemsAsync(IEnumerable<ShipmentItem> shipmentItems, CancellationToken ct);
+    
+    Task RemoveShipmentAsync(Guid shipmentId, CancellationToken ct);
+    Task RemoveShipmentItemsAsync(Guid shipmentId, CancellationToken ct);
+    
     Task<ShipmentSummary> GetSummaryAsync(int customerId, DateTime createdFrom,
         DateTime createdTo, int minTotalAmount, int minShipments);
 }

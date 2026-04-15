@@ -12,6 +12,9 @@ internal class ShipmentRepository : IShipmentRepository
     private const string SqlShipmentInsert = "INSERT INTO Shipments (Id, ShipmentNumber, CustomerId, CreatedAt) VALUES (@Id, @ShipmentNumber, @CustomerId, @CreatedAt)";
 
     private const string SqlItemsInsert = "INSERT INTO ShipmentItems (Id, ShipmentId, ProductCode, Quantity, UnitPrice) VALUES (@Id, @ShipmentId, @ProductCode, @Quantity, @UnitPrice)";
+    
+    private const string SqlItemsDelete = "DELETE FROM ShipmentItems WHERE ShipmentId = @ShipmentId";
+    private const string SqlShipmentDelete = "DELETE FROM Shipments WHERE Id = @ShipmentId";
 
     private const string SqlSummaryQuery = @"
     SELECT 
@@ -68,6 +71,16 @@ internal class ShipmentRepository : IShipmentRepository
     public Task AddShipmentItemsAsync(IEnumerable<ShipmentItem> items, CancellationToken ct)
     {
         return _dbConnection.ExecuteAsync(new CommandDefinition(SqlItemsInsert, items, cancellationToken: ct, transaction: _transaction));
+    }
+
+    public Task RemoveShipmentAsync(Guid shipmentId, CancellationToken ct)
+    {
+        return _dbConnection.ExecuteAsync(new CommandDefinition(SqlShipmentDelete, new { ShipmentId = shipmentId }, cancellationToken: ct));
+    }
+
+    public Task RemoveShipmentItemsAsync(Guid shipmentId, CancellationToken ct)
+    {
+        return _dbConnection.ExecuteAsync(new CommandDefinition(SqlItemsDelete, new { ShipmentId = shipmentId }, cancellationToken: ct));
     }
 
     public async Task<ShipmentSummary> GetSummaryAsync(int customerId, DateTime createdFrom, DateTime createdTo, int minTotalAmount, int minShipments)
