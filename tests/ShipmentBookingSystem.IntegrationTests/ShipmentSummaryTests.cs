@@ -18,7 +18,7 @@ public class ShipmentSummaryTests : IClassFixture<IntegrationTestWebAppFactory>
 	public async Task ShipmentSummaryIsCorrect()
 	{
 		// Arrange
-		var endpoint = "/shipments/summary?customerId=1234&createdFrom=2022-01-01&createdTo=2026-03-31&minTotalAmount=1&minShipments=1";
+		const string endpoint = "/shipments/summary?customerId=1234&createdFrom=2022-01-01&createdTo=2026-03-31&minTotalAmount=1&minShipments=1";
 		await PrepareDatabaseAsync();
 		// Act
 		var httpResponseMessage = await _client.GetAsync(endpoint);
@@ -32,8 +32,27 @@ public class ShipmentSummaryTests : IClassFixture<IntegrationTestWebAppFactory>
 		Assert.NotNull(result.products);
 		Assert.NotEmpty(result.products);
 		Assert.Equal(1234, result.customerID);
-		Assert.Equal(3, result.shipmentsCount);
-		Assert.Equal(27, result.totalAmount); 
+		Assert.Equal(2, result.shipmentsCount);
+		Assert.Equal(790, result.totalAmount); 
+	}
+	
+	[Theory]
+	[InlineData("customerId=1234&createdFrom=2029-01-01&createdTo=2030-03-31&minTotalAmount=1&minShipments=1")]
+	[InlineData("customerId=1234&createdFrom=2024-01-01&createdTo=2024-01-31&minTotalAmount=1&minShipments=1")]
+	[InlineData("customerId=1234&createdFrom=2022-01-01&createdTo=2026-01-31&minTotalAmount=1000&minShipments=1")]
+	[InlineData("customerId=1234&createdFrom=2022-01-01&createdTo=2026-01-31&minTotalAmount=1&minShipments=5")]
+	public async Task ShipmentSummary_QueryParametersShouldWorks(string query)
+	{
+		// Arrange
+		var endpoint = $"/shipments/summary?{query}";
+		await PrepareDatabaseAsync();
+		// Act
+		var httpResponseMessage = await _client.GetAsync(endpoint);
+
+		// Assert
+		Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
+		var stringResult = await httpResponseMessage.Content.ReadAsStringAsync();
+		Assert.Equal(string.Empty, stringResult);
 	}
 	
 	
@@ -41,8 +60,8 @@ public class ShipmentSummaryTests : IClassFixture<IntegrationTestWebAppFactory>
 	{
 		const string SQLShipment = """
 		                           			INSERT INTO Shipments (Id, ShipmentNumber, CustomerId, CreatedAt) VALUES 
-		                           			('00000000-0000-0000-0000-000000000001', 'TEST-SHIP-001', 1234, '2024-01-01T10:00:00Z'),
-		                           			('00000000-0000-0000-0000-000000000002', 'TEST-SHIP-002', 1234, '2024-01-02T10:00:00Z');
+		                           			('00000000-0000-0000-0000-000000000001', 'TEST-SHIP-001', 1234, '2024-02-01T10:00:00Z'),
+		                           			('00000000-0000-0000-0000-000000000002', 'TEST-SHIP-002', 1234, '2024-02-02T10:00:00Z');
 		                           """;
 		const string SQLItems = """
 		                           			INSERT INTO ShipmentItems (Id, ShipmentId, ProductCode, Quantity, UnitPrice) VALUES 
