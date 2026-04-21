@@ -18,7 +18,7 @@ namespace ShipmentBookingSystem.Presentation.Endpoints;
 public static class ShipmentEndpoints
 {
 	[WolverineGet("/shipments/summary")]
-    public static async Task<IResult> Post(int customerId, DateTime createdFrom,
+    public static async Task<IResult> Get(int customerId, DateTime createdFrom,
 		DateTime createdTo, int minTotalAmount, int minShipments,
 		IMessageBus messageBus)
 	{
@@ -42,7 +42,7 @@ public static class ShipmentEndpoints
 	}
 
     [WolverinePost("/shipments")]
-    public static async Task<IResult> Get(CreateShipmentRequest request,
+    public static async Task<IResult> Post(CreateShipmentRequest request,
         IMessageBus messageBus, 
 		CancellationToken cancellationToken)
     {

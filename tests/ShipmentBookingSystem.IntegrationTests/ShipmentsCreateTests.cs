@@ -1,19 +1,14 @@
 ﻿using Confluent.Kafka;
 using JasperFx.MultiTenancy;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using ShipmentBookingSystem.Api;
 using ShipmentBookingSystem.Application.Requests;
 using ShipmentBookingSystem.Application.Validators;
 using ShipmentBookingSystem.Domain.Events;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Testcontainers.Kafka;
-using Testcontainers.MsSql;
+
 namespace ShipmentBookingSystem.IntegrationTests
 {
     
@@ -130,7 +125,7 @@ namespace ShipmentBookingSystem.IntegrationTests
             // Assert Kafka
             var kafkaEvent = await ConsumeShipmentCreatedEventAsync(
                 request.ShipmentNumber,
-                TimeSpan.FromSeconds(20));
+                TimeSpan.FromSeconds(30));
 
             Assert.Null(kafkaEvent);
         }
@@ -178,88 +173,40 @@ namespace ShipmentBookingSystem.IntegrationTests
                 EnableAutoCommit = false
             };
 
-            using var consumer = new ConsumerBuilder<string, string>(config).Build();
-            consumer.Subscribe("shipment-created-event");
-
-            var deadline = DateTime.UtcNow.Add(timeout);
-
-            while (DateTime.UtcNow < deadline)
+            try
             {
-                var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(500));
-                if (consumeResult is null)
-                {
-                    await Task.Delay(100);
-                    continue;
-                }
+                using var consumer = new ConsumerBuilder<string, string>(config).Build();
+                consumer.Subscribe("shipment-created-event");
 
-                var payload = consumeResult.Message.Value;
-                if (string.IsNullOrWhiteSpace(payload))
-                {
-                    continue;
-                }
+                var deadline = DateTime.UtcNow.Add(timeout);
 
-                var message = JsonSerializer.Deserialize<ShipmentCreatedEvent>(payload);
-                if (message is not null && message.ShipmentNumber == shipmentNumber)
+                while (DateTime.UtcNow < deadline)
                 {
-                    return message;
+                    var consumeResult = consumer.Consume(TimeSpan.FromMilliseconds(500));
+                    if (consumeResult is null)
+                    {
+                        await Task.Delay(100);
+                        continue;
+                    }
+
+                    var payload = consumeResult.Message.Value;
+                    if (string.IsNullOrWhiteSpace(payload))
+                    {
+                        continue;
+                    }
+
+                    var message = JsonSerializer.Deserialize<ShipmentCreatedEvent>(payload);
+                    if (message is not null && message.ShipmentNumber == shipmentNumber)
+                    {
+                        return message;
+                    }
                 }
+                return null;
             }
-
-            return null;
+            catch (ConsumeException ex) when (ex.Error.Code == ErrorCode.UnknownTopicOrPart  )
+            {
+                return null;
+            }
         }
     } 
 }
-
-    public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
-    {
-        private readonly MsSqlContainer _dbContainer;
-        private readonly KafkaContainer _kafkaContainer;
-
-        public Task PauseKafkaContainer() => _kafkaContainer.PauseAsync();
-        public Task PauseSqlContainer() => _dbContainer.PauseAsync();
-        public Task UnpauseKafkaContainer() => _kafkaContainer.UnpauseAsync();
-        public Task UnpauseSqlContainer() => _dbContainer.UnpauseAsync();
-        public string GetKafkaBootstrapAddress() => _kafkaContainer.GetBootstrapAddress();
-        public string GetSqlConnectionString() => _dbContainer.GetConnectionString();
-
-        public IntegrationTestWebAppFactory()
-        {
-            _dbContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
-                .WithPassword("Password123!")
-                .Build();
-            KafkaConfiguration kafkaConfiguration = new KafkaConfiguration();
-            _kafkaContainer = new KafkaBuilder()
-                .Build();
-        }
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
-        {
-            var a = _dbContainer.GetConnectionString();
-            var b =_kafkaContainer.GetConnectionString();
-
-            builder.ConfigureAppConfiguration((context, config) =>
-            {
-                config.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["ConnectionStrings:Default"] = a,
-                    ["Kafka:BootstrapServers"] = b,
-                    ["Logging:LogLevel:Default"] = "Information"
-                });
-            });
-        }
-
-        public async Task InitializeAsync()
-        {
-            await _dbContainer.StartAsync();
-            await _kafkaContainer.StartAsync();
-            
-        }
-
-        async Task IAsyncLifetime.DisposeAsync()
-        {
-            await _dbContainer.StopAsync();
-            await _kafkaContainer.StopAsync();
-            await _dbContainer.DisposeAsync();
-            await _kafkaContainer.DisposeAsync();   
-        }
-    }
-

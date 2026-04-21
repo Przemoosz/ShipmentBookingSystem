@@ -85,15 +85,27 @@ internal class ShipmentRepository : IShipmentRepository
 
     public async Task<ShipmentSummary> GetSummaryAsync(int customerId, DateTime createdFrom, DateTime createdTo, int minTotalAmount, int minShipments)
     {
-        var summary = await _dbConnection.QueryFirstOrDefaultAsync<string>(new CommandDefinition(SqlSummaryQuery,
-            new
-            {
-                customerId = customerId,
-                createdFrom = createdFrom,
-                createdTo = createdTo,
-                minTotalAmount = minTotalAmount,
-                minShipments = minShipments
-            }, transaction: _transaction));
+        string summary;
+        try
+        {
+            var a = new CommandDefinition(SqlSummaryQuery,
+                new
+                {
+                    customerId = customerId,
+                    createdFrom = createdFrom,
+                    createdTo = createdTo,
+                    minTotalAmount = minTotalAmount,
+                    minShipments = minShipments
+                }, _transaction);
+            
+            summary = await _dbConnection.QueryFirstOrDefaultAsync<string>(a);
+            _transaction.Commit();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
         var summaryObject = JsonConvert.DeserializeObject<ShipmentSummary>(summary);
         return summaryObject;
     }
