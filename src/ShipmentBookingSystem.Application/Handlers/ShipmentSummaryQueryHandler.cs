@@ -12,9 +12,8 @@ public sealed class ShipmentSummaryQueryHandler
     {
         _shipmentRepository = unitOfWork.ShipmentRepository;
     }
-    public async Task<ShipmentSummary> Handle(ShipmentSummaryQuery query, CancellationToken cancellationToken)
+    public Task<ShipmentSummary> Handle(ShipmentSummaryQuery query, CancellationToken cancellationToken)
     {
-        ShipmentSummary result = await _shipmentRepository.GetSummaryAsync(query.CustomerId, query.CreatedFrom, query.CreatedTo, query.MinTotalAmount, query.MinShipments);
-        return result;
+        return _shipmentRepository.GetSummaryAsync(query.CustomerId, query.CreatedFrom, query.CreatedTo, query.MinTotalAmount, query.MinShipments, cancellationToken);
     }
 }

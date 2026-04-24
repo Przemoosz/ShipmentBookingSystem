@@ -98,7 +98,7 @@ namespace ShipmentBookingSystem.IntegrationTests
         [Fact]
         public async Task ShipmentAndShipmentsItems_ShouldNotBeSavedInKafkaAndInSqlDb_InCaseOfSqlContainerError()
         {
-            await Task.Delay(4000);
+            await _factory.PauseSqlContainer();
             var request = new CreateShipmentRequest(
                  ShipmentNumber: "TEST-SHIP-001",
                  CustomerId: 1234,
@@ -108,7 +108,6 @@ namespace ShipmentBookingSystem.IntegrationTests
                     new("PRODUCT-B", 5, 25.00m)
                  }
              );
-            await _factory.PauseSqlContainer();
 
             // Act
             var response = await _client.PostAsJsonAsync("/shipments", request);

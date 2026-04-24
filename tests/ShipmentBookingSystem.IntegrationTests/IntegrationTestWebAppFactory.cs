@@ -7,52 +7,55 @@ using Testcontainers.MsSql;
 
 public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-	public MsSqlContainer DbContainer { get; }
+	private readonly MsSqlContainer _dbContainer;
 	private readonly KafkaContainer _kafkaContainer;
 
 	public Task PauseKafkaContainer() => _kafkaContainer.PauseAsync();
-	public Task PauseSqlContainer() => DbContainer.PauseAsync();
+	public Task PauseSqlContainer() => _dbContainer.PauseAsync();
 	public Task UnpauseKafkaContainer() => _kafkaContainer.UnpauseAsync();
-	public Task UnpauseSqlContainer() => DbContainer.UnpauseAsync();
+	public Task UnpauseSqlContainer() => _dbContainer.UnpauseAsync();
 	public string GetKafkaBootstrapAddress() => _kafkaContainer.GetBootstrapAddress();
-	public string GetSqlConnectionString() => DbContainer.GetConnectionString();
+	public string GetSqlConnectionString() => _dbContainer.GetConnectionString();
 
 	public IntegrationTestWebAppFactory()
 	{
-		DbContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
+		_dbContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
 			.WithPassword("Password123!")
-			.WithExposedPort(59277)
 			.Build();
-		_kafkaContainer = new KafkaBuilder()
-			.Build();
+		_kafkaContainer = new KafkaBuilder("confluentinc/cp-kafka:7.7.8")
+            .Build();
 	}
 	protected override void ConfigureWebHost(IWebHostBuilder builder)
 	{
-		var a = DbContainer.GetConnectionString();
-		var b =_kafkaContainer.GetConnectionString();
-
 		builder.ConfigureAppConfiguration((context, config) =>
 		{
 			config.AddInMemoryCollection(new Dictionary<string, string?>
 			{
-				["ConnectionStrings:Default"] = a,
-				["Kafka:BootstrapServers"] = b,
-				["Logging:LogLevel:Default"] = "Information"
+				["ConnectionStrings:Default"] = _dbContainer.GetConnectionString(),
+				["Kafka:BootstrapServers"] = _kafkaContainer.GetConnectionString(),
 			});
 		});
 	}
 
+	public async Task ExecuteSQLAsync(string sql)
+	{
+		if (_dbContainer.State == DotNet.Testcontainers.Containers.TestcontainersStates.Running)
+		{
+			await _dbContainer.ExecScriptAsync(sql);
+		}
+	}
+
 	public async Task InitializeAsync()
 	{
-		await DbContainer.StartAsync();
+		await _dbContainer.StartAsync();
 		await _kafkaContainer.StartAsync();
 	}
 
 	async Task IAsyncLifetime.DisposeAsync()
 	{
-		await DbContainer.StopAsync();
+		await _dbContainer.StopAsync();
 		await _kafkaContainer.StopAsync();
-		await DbContainer.DisposeAsync();
+		await _dbContainer.DisposeAsync();
 		await _kafkaContainer.DisposeAsync();   
 	}
 }

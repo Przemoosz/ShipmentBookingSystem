@@ -14,6 +14,5 @@ internal sealed class CreateShipmentValidator: AbstractValidator<CreateShipmentR
 			item.RuleFor(i => i.Quantity).GreaterThan(0);
 			item.RuleFor(i => i.UnitPrice).GreaterThan(0);
 		}); 
-		// to do check if shipment does not exist
 	}
 }

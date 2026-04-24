@@ -83,23 +83,25 @@ internal class ShipmentRepository : IShipmentRepository
         return _dbConnection.ExecuteAsync(new CommandDefinition(SqlItemsDelete, new { ShipmentId = shipmentId }, cancellationToken: ct));
     }
 
-    public async Task<ShipmentSummary> GetSummaryAsync(int customerId, DateTime createdFrom, DateTime createdTo, int minTotalAmount, int minShipments)
+    public async Task<ShipmentSummary> GetSummaryAsync(int customerId, DateTime createdFrom, DateTime createdTo, int minTotalAmount, int minShipments, CancellationToken ct)
     {
             var summary = await _dbConnection.QueryFirstOrDefaultAsync<string>(new CommandDefinition(SqlSummaryQuery,
                 new
                 {
-                    customerId = customerId,
-                    createdFrom = createdFrom,
-                    createdTo = createdTo,
-                    minTotalAmount = minTotalAmount,
-                    minShipments = minShipments
-                }, _transaction));
+                    customerId,
+                    createdFrom,
+                    createdTo,
+                    minTotalAmount,
+                    minShipments
+                }, 
+                transaction: _transaction, 
+                cancellationToken: ct));
             _transaction.Commit();
+
             if (summary is null)
             {
                 return null;
             }
-            var summaryObject = JsonConvert.DeserializeObject<ShipmentSummary>(summary);
-            return summaryObject;
+            return JsonConvert.DeserializeObject<ShipmentSummary>(summary);
     }
 }

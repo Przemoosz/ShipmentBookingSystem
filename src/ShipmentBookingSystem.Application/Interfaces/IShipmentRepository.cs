@@ -12,5 +12,5 @@ public interface IShipmentRepository
     Task RemoveShipmentItemsAsync(Guid shipmentId, CancellationToken ct);
     
     Task<ShipmentSummary> GetSummaryAsync(int customerId, DateTime createdFrom,
-        DateTime createdTo, int minTotalAmount, int minShipments);
+        DateTime createdTo, int minTotalAmount, int minShipments, CancellationToken ct);
 }

@@ -23,17 +23,18 @@ public sealed class SaveShipmentResquestHandler
 
     public async Task Handle(SaveShipmentRequest request, CancellationToken ct)
     {
-        Guid shipmentId = Guid.NewGuid();
-        DateTime shipmentCreationDate = DateTime.UtcNow;
         Shipment shipment = new()
         {
-            CreatedAt = shipmentCreationDate,
+            CreatedAt = DateTime.UtcNow,
             CustomerId = request.CustomerId,
-            Id = shipmentId,
+            Id = Guid.NewGuid(),
             ShipmentNumber = request.ShipmentNumber,
         };
+
         List<ShipmentItem> shipmentItems = new(request.Items.Count);
+
         decimal totalAmount = 0;
+
         foreach (var item in request.Items) 
         {
             shipmentItems.Add(new ShipmentItem()
@@ -53,7 +54,7 @@ public sealed class SaveShipmentResquestHandler
             ShipmentNumber = shipment.ShipmentNumber,
             CustomerId = shipment.CustomerId,
             TotalAmount = totalAmount,
-            OccurredAt = shipmentCreationDate
+            OccurredAt = shipment.CreatedAt
         };
 
         try
@@ -84,8 +85,6 @@ public sealed class SaveShipmentResquestHandler
             _logger.LogError("Failed to publish shipment created event to - rolling back DB", ex);
             throw;
         }
-        
     }
-
 }
 

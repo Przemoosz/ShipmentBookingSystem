@@ -1,17 +1,9 @@
-﻿using System.Data;
-using Dapper;
-using Microsoft.AspNetCore.Http;
-using ShipmentBookingSystem.Application.Interfaces;
+﻿using Microsoft.AspNetCore.Http;
 using ShipmentBookingSystem.Application.Queries;
 using ShipmentBookingSystem.Application.Requests;
-using ShipmentBookingSystem.Application.Validators;
-using ShipmentBookingSystem.Domain.Entities;
-using ShipmentBookingSystem.Domain.Events;
 using ShipmentBookingSystem.Domain.Models;
 using Wolverine;
-using Wolverine.Attributes;
 using Wolverine.Http;
-using Wolverine.Persistence.Durability;
 
 namespace ShipmentBookingSystem.Presentation.Endpoints;
 

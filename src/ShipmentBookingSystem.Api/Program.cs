@@ -64,8 +64,7 @@ namespace ShipmentBookingSystem.Api
 				opts.UseFluentValidation();
 				opts.UseFluentValidationProblemDetail();
 				opts.Services.AddResourceSetupOnStartup();
-				opts.Policies.AutoApplyTransactions(); // tbr
-				opts.UseKafka(builder.Configuration.GetSection("Kafka:BootstrapServers").Value); // add null check
+				opts.UseKafka(builder.Configuration.GetSection("Kafka:BootstrapServers").Value);
 				opts.PublishMessage<ShipmentCreatedEvent>()
 					.ToKafkaTopic("shipment-created-event")
 					.Specification(spec =>
@@ -81,21 +80,18 @@ namespace ShipmentBookingSystem.Api
 					});
 
 			});
-			builder.Services.AddControllers(); //tbr
+			builder.Services.AddControllers();
 			builder.Services.AddWolverineHttp();
-			builder.Services.AddOpenApi(); //tbr
+			builder.Services.AddOpenApi();
 			var app = builder.Build();
 
-			if (app.Environment.IsDevelopment())
-			{
-				app.MapOpenApi(); // tbr
-			}
+
 			
 			app.MapWolverineEndpoints(opts => {
 				opts.UseFluentValidationProblemDetailMiddleware(); 
 				opts.UseDataAnnotationsValidationProblemDetailMiddleware();
 			});
-			app.UseHttpsRedirection(); // probably tbr
+			app.UseHttpsRedirection(); 
 			
 			app.UseAuthorization();
 			using (IServiceScope scope = app.Services.CreateScope())
@@ -113,10 +109,3 @@ namespace ShipmentBookingSystem.Api
 		}
 	}
 }
-public class HelloEndpoint
-{
-	[WolverineGet("/get")]
-	public string Get() => "Hello.";
-}
-
-

@@ -26,14 +26,14 @@ public class ShipmentSummaryTests : IClassFixture<IntegrationTestWebAppFactory>
 		// Assert
 		Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
 		
-		var result = JsonConvert.DeserializeObject<Root>(await httpResponseMessage.Content.ReadAsStringAsync());
+		var result = JsonConvert.DeserializeObject<Summary>(await httpResponseMessage.Content.ReadAsStringAsync());
 
 		Assert.NotNull(result);
-		Assert.NotNull(result.products);
-		Assert.NotEmpty(result.products);
-		Assert.Equal(1234, result.customerID);
-		Assert.Equal(2, result.shipmentsCount);
-		Assert.Equal(790, result.totalAmount); 
+		Assert.NotNull(result.Products);
+		Assert.NotEmpty(result.Products);
+		Assert.Equal(1234, result.CustomerID);
+		Assert.Equal(2, result.ShipmentsCount);
+		Assert.Equal(790, result.TotalAmount); 
 	}
 	
 	[Theory]
@@ -51,7 +51,9 @@ public class ShipmentSummaryTests : IClassFixture<IntegrationTestWebAppFactory>
 
 		// Assert
 		Assert.Equal(HttpStatusCode.OK, httpResponseMessage.StatusCode);
+		
 		var stringResult = await httpResponseMessage.Content.ReadAsStringAsync();
+
 		Assert.Equal(string.Empty, stringResult);
 	}
 	
@@ -59,32 +61,32 @@ public class ShipmentSummaryTests : IClassFixture<IntegrationTestWebAppFactory>
 	private async Task PrepareDatabaseAsync()
 	{
 		const string SQLShipment = """
-		                           			INSERT INTO Shipments (Id, ShipmentNumber, CustomerId, CreatedAt) VALUES 
-		                           			('00000000-0000-0000-0000-000000000001', 'TEST-SHIP-001', 1234, '2024-02-01T10:00:00Z'),
-		                           			('00000000-0000-0000-0000-000000000002', 'TEST-SHIP-002', 1234, '2024-02-02T10:00:00Z');
+		                           	INSERT INTO Shipments (Id, ShipmentNumber, CustomerId, CreatedAt) VALUES 
+		                           	('00000000-0000-0000-0000-000000000001', 'TEST-SHIP-001', 1234, '2024-02-01T10:00:00Z'),
+		                           	('00000000-0000-0000-0000-000000000002', 'TEST-SHIP-002', 1234, '2024-02-02T10:00:00Z');
 		                           """;
 		const string SQLItems = """
-		                           			INSERT INTO ShipmentItems (Id, ShipmentId, ProductCode, Quantity, UnitPrice) VALUES 
-		                           			('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'PRODUCT-A', 10, 15.50),
-		                           			('00000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', 'PRODUCT-B', 5, 25.00),
-		                           			('00000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000002', 'PRODUCT-A', 20, 15.50),
-		                           			('00000000-0000-0000-0000-000000000014', '00000000-0000-0000-0000-000000000002', 'PRODUCT-C', 2, 100.00);
+		                           	INSERT INTO ShipmentItems (Id, ShipmentId, ProductCode, Quantity, UnitPrice) VALUES 
+		                           	('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'PRODUCT-A', 10, 15.50),
+		                           	('00000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', 'PRODUCT-B', 5, 25.00),
+		                           	('00000000-0000-0000-0000-000000000013', '00000000-0000-0000-0000-000000000002', 'PRODUCT-A', 20, 15.50),
+		                           	('00000000-0000-0000-0000-000000000014', '00000000-0000-0000-0000-000000000002', 'PRODUCT-C', 2, 100.00);
 		                        """;
-		await _factory.DbContainer.ExecScriptAsync(SQLShipment);
-		await _factory.DbContainer.ExecScriptAsync(SQLItems);
+		await _factory.ExecuteSQLAsync(SQLShipment);
+		await _factory.ExecuteSQLAsync(SQLItems);
 	}
 	
 	internal class Product
 	{
-		public string productCode { get; set; }
-		public int totalQuantity { get; set; }
+		public string ProductCode { get; set; }
+		public int TotalQuantity { get; set; }
 	}
 
-	internal class Root
+	internal class Summary
 	{
-		public int customerID { get; set; }
-		public int shipmentsCount { get; set; }
-		public double totalAmount { get; set; }
-		public List<Product> products { get; set; }
+		public int CustomerID { get; set; }
+		public int ShipmentsCount { get; set; }
+		public double TotalAmount { get; set; }
+		public List<Product> Products { get; set; }
 	}
 }
